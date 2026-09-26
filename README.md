@@ -1,125 +1,111 @@
-# Enterprise Local Agentic RAG & Observability Engine
+# موتور RAG محلی مبتنی بر Agent و رصدپذیری (Enterprise Local Agentic RAG)
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Qdrant](https://img.shields.io/badge/Vector_DB-Qdrant-red.svg?logo=qdrant)](https://qdrant.tech/)
-[![Ollama](https://img.shields.io/badge/LLM_Engine-Ollama-black.svg?logo=ollama)](https://ollama.com)
-[![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus-E6522C.svg?logo=prometheus&logoColor=white)](https://prometheus.io/)
-[![Grafana](https://img.shields.io/badge/Dashboard-Grafana-F46800.svg?logo=grafana&logoColor=white)](https://grafana.com/)
-[![Docker](https://img.shields.io/badge/Deployment-Docker_Compose-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+> **وضعیت پروژه:** 🟡 در حال توسعه فعال (Active Development) — پیاده‌سازی گام‌به‌گام در ۵ فاز
 
-> **Status:** 🚧 Active Development (Phased Implementation)
-
-A production-ready, privacy-first, and fully self-hosted **Retrieval-Augmented Generation (RAG)** service powered by local LLMs, lightweight vector search, agentic routing, and end-to-end LLM observability.
+یک سیستم پرسش‌وپاسخ مبتنی بر بازیابی اطلاعات (RAG) کاملاً محلی (Self-Hosted) و حریم‌خصوصی‌محور با تمرکز بر معماری کانتینری تمیز، تصمیم‌گیری پویا (Agentic Routing) و رصدپذیری عمیق (Observability) در سطح سیستم و مدل.
 
 ---
 
-## 🎯 Overview & Problem Statement
+## 🎯 هدف پروژه
 
-Most enterprise knowledge retrieval prototypes rely on external LLM APIs (e.g., OpenAI, Anthropic), introducing high recurring costs, network latency, and critical data privacy risks. Moreover, many implementations lack essential software engineering rigor: observability, structured error handling, and containerized deployment.
-
-**This project delivers:**
-1. **100% On-Premise & Air-Gapped Readiness:** Runs entirely on commodity hardware without sending proprietary data to third-party endpoints.
-2. **Agentic Knowledge Routing:** Distinguishes between direct Q&A, context-heavy document retrieval, and structured fallback.
-3. **First-Class Observability (LLMOps):** Tracks token consumption, retrieval latency, request volume, and cache hit ratios via Prometheus and Grafana.
-4. **Clean Engineering Standards:** Built with FastAPI (async), Pydantic V2 validation, Qdrant vector database, and modular Docker orchestration.
+بسیاری از پیاده‌سازی‌های RAG محدود به اسکریپت‌های آزمایشی بوده یا وابسته به APIهای ابری ثالث هستند. تصمیم گرفتم این پروژه را با یک رویکرد مهندسی‌شده و ماژولار پیاده‌سازی کنم تا چالش‌های دنیای واقعی را حل کند:
+1. **استقلال کامل و حریم خصوصی:** اجرای ۱۰۰٪ محلی بدون نیاز به ارسال داده یا پرامپت‌ها به سرویس‌های ابری خارجی.
+2. **رصدپذیری بومی (Native Observability):** ادغام ابزارهای مانیتورینگ استاندارد صنعت (Prometheus و Grafana) برای پایش زمان بازیابی، مصرف حافظه و متریک‌های مرتبط با سرویس‌دهی مدل.
+3. **معماری تفکیک‌شده (Decoupled Architecture):** جداسازی شفاف خط لوله ورود داده (Ingestion)، لایه برداری و جستجوی معنایی، لایه وب API و لایه مانیتورینگ.
 
 ---
 
-## 🏗 System Architecture
-```mermaid
-flowchart TD
-Client([Client / Application]) -->|HTTP REST / SSE| API[FastAPI Gateway]
+## 🏗 معماری و پشته فناوری (Tech Stack)
 
-subgraph Core Engine
-API --> Router{Agentic Router}
-Router -->|Direct Prompt / Tool Call| LLM[Local LLM - Ollama]
-Router -->|Context Retrieval Needed| Retriever[Qdrant Vector DB]
-Retriever -->|Relevant Chunks + Metadata| ReRanker[Context Assembler]
-ReRanker --> LLM
-end
-
-subgraph Observability Stack
-API -.->|Request / Latency Metrics| Prom[Prometheus Server]
-LLM -.->|TTFT & Token Usage| Prom
-Prom --> Grafana[Grafana Dashboards]
-end
-
-subgraph Data Ingestion Pipeline
-Docs[Raw Documents / PDFs] --> Chunker[Semantic / Recursive Splitter]
-Chunker --> Embedder[Local Embedding Model]
-Embedder -->|Dense Vectors| Retriever
-end
+- **Language Runtime:** Python 3.11+
+- **API Framework:** FastAPI + Pydantic V2
+- **LLM Runtime:** Ollama (پشتیبانی محلی از مدل‌های Open-Weight مانند Qwen و Hermes)
+- **Vector Database:** Qdrant (ذخیره‌سازی بهینه وکتورها و متاداده‌ها)
+- **Embeddings:** FastEmbed / Sentence-Transformers (تولید امبدینگ سریع و محلی)
+- **Observability:** Prometheus (جمع‌آوری متریک‌ها) + Grafana (داشبورد بصری) + Structured JSON Logging
+- **Containerization & Tooling:** Docker, Docker Compose, GNU Make
 
 ---
 
-## ⚙️ Tech Stack
+## 🗺 نقشه راه توسعه در ۵ فاز (5-Phase Roadmap)
 
-| Component | Technology | Rationale |
-| :--- | :--- | :--- |
-| **Backend / API** | Python 3.11+, FastAPI | High-throughput asynchronous REST API with native OpenAPI documentation |
-| **LLM Inference** | Ollama (`Hermes-3` / `Qwen2.5`) | Optimized local quantized inference with strong function-calling support |
-| **Vector Store** | Qdrant | Ultra-fast Rust-based vector search with native metadata filtering and low footprint |
-| **Embeddings** | `bge-small-en-v1.5` / `nomic-embed` | State-of-the-art embedding quality under 500MB memory usage |
-| **Observability** | Prometheus + Grafana | Production-grade metric aggregation (latency, throughput, token rates) |
-| **Orchestration** | Docker & Docker Compose | Single-command reproducible environment with isolated health checks |
+این پروژه به‌صورت گام‌به‌گام و از زیرساخت تا بهینه‌سازی ارزیابی توسعه داده می‌شود:
 
----
+### 🔹 فاز ۱: زیرساخت، محیط کانتینری و Runtime محلی
+- [ ] راه‌اندازی فایل پیکربندی متمرکز متغیرهای محیطی (`.env.example`)
+- [ ] طراحی `docker-compose.yml` چندسرویسی (FastAPI, Qdrant, Ollama, Prometheus, Grafana)
+- [ ] پیکربندی اتصال اولیه Ollama و Qdrant
+- [ ] راه‌اندازی Makefile جهت اتوماسیون دستورات توسعه (`make up`, `make down`)
 
-## 🚀 Key Use Cases
+### 🔹 فاز ۲: خط لوله ورود و پردازش داده (Data Ingestion Pipeline)
+- [ ] پیاده‌سازی لودرهای داکیومنت برای فرمت‌های متنی و اسناد (`data/sample_docs/`)
+- [ ] پیاده‌سازی تقطیع بهینه متون (Chunking با لحاظ Overlap و حفظ سیاق متن)
+- [ ] تولید وکتورهای امبدینگ محلی و ذخیره در مجموعه‌های (Collections) دیتابیس Qdrant
+- [ ] ایجاد اسکریپت CLI برای ایندکس‌گذاری خودکار داده‌ها
 
-- **Internal Knowledge Base:** Instant semantic search and Q&A over internal technical docs, runbooks, and policies.
-- **Support / DevOps Troubleshooting:** Querying architecture documentation and post-mortem logs locally without third-party API exposure.
-- **Cost-Controlled Retrieval:** Zero variable API billing for search and summarization workloads.
+### 🔹 فاز ۳: لایه API و مسیریابی هوشمند (API & Agentic Routing)
+- [ ] طراحی اندپوینت‌های REST با FastAPI (`/v1/query`, `/v1/ingest`, `/health`)
+- [ ] پیاده‌سازی لایه بازیابی معنایی (Semantic Search بر اساس شباهت کسینوسی و حد آستانه)
+- [ ] پیاده‌سازی روتر اولیه: تصمیم‌گیری بین پاسخ مستقیم مدل یا فراخوانی RAG بر اساس نوع ورودی
+- [ ] مدیریت قالب پرامپت‌ها و سیاق پاسخ‌دهی (Context-Augmented Prompting)
 
----
+### 🔹 فاز ۴: رصدپذیری تخصصی سیستم‌های زبانی (LLM Observability)
+- [ ] توسعه میدلور FastAPI برای استخراج متریک‌های استاندارد HTTP (کدهای وضعیت، Latency)
+- [ ] تعریف متریک‌های سفارشی Prometheus برای رصد زمان بازیابی بردارها و زمان پردازش مدل
+- [ ] طراحی لاگر ساختاریافته (JSON Structured Logging) مناسب برای تجمیع لاگ‌ها
+- [ ] ایجاد و اتصال داشبورد آماده Grafana برای تحلیل بصری عملکرد استک
 
-## 🗺 Implementation Roadmap
-
-- [ ] **Phase 1: Infrastructure & Model Runtime**
-  - [x] Repository setup and architecture baseline
-  - [ ] Docker Compose setup for Ollama, Qdrant, and network bridging
-  - [ ] Healthcheck automation and local model pulling scripts
-- [ ] **Phase 2: Ingestion & Vector Pipeline**
-  - [ ] Document loaders (Markdown, PDF, TXT)
-  - [ ] Chunking strategy with metadata preservation
-  - [ ] Embedding pipeline and upserting into Qdrant collections
-- [ ] **Phase 3: Core API & Agentic Routing**
-  - [ ] FastAPI asynchronous service structure with Pydantic V2
-  - [ ] Routing logic: Direct response vs. Knowledge retrieval
-  - [ ] Context assembly and structured generation
-- [ ] **Phase 4: LLMOps & Observability**
-  - [ ] Custom Prometheus middleware for API metrics
-  - [ ] Latency tracking (Time-To-First-Token, retrieval latency)
-  - [ ] Provisioned Grafana dashboard configuration
-- [ ] **Phase 5: Evaluation & Production Hardening**
-  - [ ] Retrieval evaluation tests (Context relevance & hit rate)
-  - [ ] End-to-end integration tests
-  - [ ] Production deployment guidelines
+### 🔹 فاز ۵: ارزیابی، آزمون‌های نرم‌افزاری و مقاوم‌سازی (Hardening)
+- [ ] نگارش تست‌های واحد (Unit Tests) برای بخش‌های چانکینگ، روتر و اسکیمای داده
+- [ ] آزمون‌های یکپارچگی (Integration Tests) برای اندپوینت‌های API و پایگاه داده وکتور
+- [ ] بهینه‌سازی مدیریت خطاها، Graceful Shutdown و سناریوهای کمبود منابع
+- [ ] تکمیل مستندات نهایی، دیاگرام معماری و راهنمای بنچمارک عملکرد
 
 ---
 
-## 🛠 Quickstart (Coming in Phase 1)
+## 📁 ساختار مخزن (Repository Structure)
+```text
+enterprise-local-rag/
+├── docker/                  # کانفیگ‌های Docker Compose، Prometheus و Grafana
+├── data/                    # داده‌های نمونه برای ارزیابی خط لوله Ingestion
+├── scripts/                 # اسکریپت‌های اتوماسیون (دریافت مدل‌ها و ایندکس داده)
+├── src/
+│   ├── api/                 # اندپوینت‌ها و روترهای نسخه ۱
+│   ├── core/                # اتصالات زیرساختی (LLM, Embeddings, Vector DB)
+│   ├── agent/               # منطق بازیابی معنایی و مسیریابی پرامپت
+│   ├── ingestion/           # خط لوله تقطیع، امبدینگ و ذخیره اسناد
+│   ├── observability/       # متریک‌های Prometheus و لاگ‌های ساختاریافته
+│   ├── schemas/             # مدل‌های اعتبارسنجی ورودی/خروجی (Pydantic)
+│   ├── config.py            # مدیریت متمرکز متغیرهای محیطی
+│   └── main.py              # نقطه ورود برنامه FastAPI
+├── tests/                   # تست‌های نرم‌افزاری Unit و Integration
+├── Makefile                 # دستورات اجرایی سریع
+└── README.md
+
+---
+
+## 🚀 نحوه راه‌اندازی (به‌زودی)
+
+> راهنمای گام‌به‌گام راه‌اندازی با کانتینرها پس از تکمیل پیاده‌سازی فاز ۱ در این بخش درج خواهد شد.
 
 bash
-# Clone the repository
-git clone https://github.com/arash-zare/Enterprise-RAG-Observability.git
+# کلون کردن مخزن
+git clone https://github.com/arash-zare/enterprise-local-rag.git
 cd enterprise-local-rag
 
-# Spin up infrastructure
-docker compose up -d
+# نمونه متغیرهای محیطی
+cp .env.example .env
 
-# Check service readiness
-curl http://localhost:8000/health
+# راه‌اندازی سرویس‌ها (پس از تکمیل فاز ۱)
+# make up
+
+---
+
+## 📄 مجوز
+
+این پروژه تحت مجوز [MIT](LICENSE) منتشر شده است.
+
 
 ---
 
-## 👤 Author
-
-Developed by **Arash Zare**  
-- LinkedIn: [arash-zare-dev](https://www.linkedin.com/in/arash-zare-dev)  
-- Website: [arashzare.ir](https://arashzare.ir)  
-- GitHub: [@arash-zare](https://github.com/arash-zare)
-
-
----
+اگر آماده‌ای، برویم سراغ **فاز ۱** و فایل‌های اولیه زیرساخت (`.env.example`، `docker/docker-compose.yml` و پیکربندی Prometheus) را پیاده کنیم. برای شروع بگو محیطی که تست می‌کنی (سیستم‌عامل و اینکه آیا کارت گرافیک فعال داری یا با CPU بالا می‌آوری) چیست؟
