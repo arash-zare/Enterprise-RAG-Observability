@@ -52,3 +52,5 @@ Enterprise_Local_Agentic_RAG/
 │       └── pipeline.py              # Coordinates ingestion steps
 ├── requirements.txt
 └── README.md
+
+![http://localhost:6333/dashboard#/console : ](images/qdrant_localhost.png)
