@@ -53,4 +53,4 @@ Enterprise_Local_Agentic_RAG/
 ├── requirements.txt
 └── README.md
 
-  ![Qdrant Dashboard](images/qdrant_localhost.png)
+![Qdrant Dashboard](images/qdrant_localhost.png)
